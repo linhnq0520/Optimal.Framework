@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Optimal.Framework.Data;
 
-namespace Optimal.Framework.Infrastructure
+namespace Optimal.Framework.Configuration
 {
     public static class ApplicationStartup
     {
