@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Optimal.Framework.ConfigManager.DataConfig;
+using Optimal.Framework.Data;
 using Optimal.Framework.Data.DataProvider;
 using Optimal.Framework.Infrastructure;
 
@@ -14,6 +15,7 @@ namespace Optimal.Framework.Configuration
             services.AddSingleton(Singleton<ITypeFinder>.Instance);
             services.AddSingleton<IAppDataProvider, BaseDataProvider>();
             DataSettingManager.LoadSettings(configuration);
+            services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
         }
 
     }
