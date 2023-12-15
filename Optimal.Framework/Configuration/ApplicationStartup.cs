@@ -4,6 +4,7 @@ using Optimal.Framework.Data.ConfigManager;
 using Optimal.Framework.Data;
 using Optimal.Framework.Data.DataProvider;
 using Optimal.Framework.Infrastructure;
+using Optimal.Framework.Services;
 
 namespace Optimal.Framework.Configuration
 {
@@ -16,6 +17,7 @@ namespace Optimal.Framework.Configuration
             services.AddSingleton<IAppDataProvider, BaseDataProvider>();
             DataSettingManager.LoadSettings(configuration);
             services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
+            services.AddScoped<IJwtTokenService, JwtTokenService>();
         }
 
     }
