@@ -5,11 +5,11 @@ namespace Optimal.Framework.Data
 {
     public class BaseRepository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity
     {
-        private readonly IDataProvider _dataProvider;
+        private readonly IAppDataProvider _dataProvider;
 
         public IQueryable<TEntity> Table => _dataProvider.GetTable<TEntity>();
 
-        public BaseRepository(IDataProvider dataProvider)
+        public BaseRepository(IAppDataProvider dataProvider)
         {
             _dataProvider = dataProvider;
         }

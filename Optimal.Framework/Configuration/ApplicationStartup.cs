@@ -15,11 +15,7 @@ namespace Optimal.Framework.Configuration
         {
             Singleton<ITypeFinder>.Instance = new TypeFinder();
             services.AddSingleton(Singleton<ITypeFinder>.Instance);
-            services.AddSingleton<IDataProvider, BaseDataProvider>();
-            //services.AddDbContext<ApplicationDbContext>(option =>
-            //{
-            //    option.UseSqlServer(configuration.GetConnectionString("ConnectionString"));
-            //});
+            services.AddSingleton<IAppDataProvider, BaseDataProvider>();
             DataSettingManager.LoadSettings(configuration);
         }
 

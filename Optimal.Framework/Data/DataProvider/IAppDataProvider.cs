@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Optimal.Framework.Data.DataProvider
 {
-    public interface IDataProvider
+    public interface IAppDataProvider
     {
         IQueryable<TEntity> GetTable<TEntity>() where TEntity : BaseEntity;
     }
