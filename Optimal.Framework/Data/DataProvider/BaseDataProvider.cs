@@ -2,7 +2,7 @@
 using LinqToDB.Data;
 using LinqToDB.DataProvider;
 using LinqToDB.DataProvider.SqlServer;
-using Optimal.Framework.ConfigManager.DataConfig;
+using Optimal.Framework.Data.ConfigManager;
 using Optimal.Framework.Infrastructure;
 
 namespace Optimal.Framework.Data.DataProvider

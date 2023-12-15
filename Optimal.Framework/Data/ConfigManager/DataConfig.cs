@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Optimal.Framework.ConfigManager.DataConfig
+﻿namespace Optimal.Framework.Data.ConfigManager
 {
     public class DataConfig
     {

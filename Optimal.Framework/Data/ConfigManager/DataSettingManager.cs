@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Optimal.Framework.Infrastructure;
 
-namespace Optimal.Framework.ConfigManager.DataConfig
+namespace Optimal.Framework.Data.ConfigManager
 {
     public static class DataSettingManager
     {

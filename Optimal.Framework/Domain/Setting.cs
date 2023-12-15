@@ -1,5 +1,5 @@
 ﻿using Optimal.Framework.Data;
-namespace Optimal.Framework.Configuration.Domain
+namespace Optimal.Framework.Domain
 {
     public class Setting : BaseEntity
     {
