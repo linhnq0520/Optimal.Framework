@@ -1,16 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Optimal.Framework.Data.DataProvider;
 
 namespace Optimal.Framework.Data
 {
     public class BaseRepository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDataProvider _dataProvider;
 
-        public IQueryable<TEntity> Table => _context.Set<TEntity>();
+        public IQueryable<TEntity> Table => _dataProvider.GetTable<TEntity>();
 
-        public BaseRepository(ApplicationDbContext context)
+        public BaseRepository(IDataProvider dataProvider)
         {
-            _context = context;
+            _dataProvider = dataProvider;
         }
 
         public async Task<IEnumerable<TEntity>> GetAllAsync()
@@ -21,36 +22,6 @@ namespace Optimal.Framework.Data
         public async Task<TEntity> GetByIdAsync(int id)
         {
             return await Table.FirstOrDefaultAsync(x => x.Id == id);
-        }
-
-        public async Task AddAsync(TEntity entity)
-        {
-            await _context.AddAsync(entity);
-            await SaveAsync();
-        }
-
-        public async Task UpdateAsync(TEntity entity)
-        {
-            var entry = _context.Entry(entity);
-            entry.State = EntityState.Modified;
-            entry.Property(x => x.Id).IsModified = false;
-
-            await SaveAsync();
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            TEntity entity = await Table.FirstOrDefaultAsync(x => x.Id == id);
-            if (entity != null)
-            {
-                _context.Remove(entity);
-                await SaveAsync();
-            }
-        }
-
-        public async Task SaveAsync()
-        {
-            await _context.SaveChangesAsync();
         }
     }
 }

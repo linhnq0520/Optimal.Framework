@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Optimal.Framework.ConfigManager.DataConfig;
 using Optimal.Framework.Data;
+using Optimal.Framework.Data.DataProvider;
 using Optimal.Framework.Infrastructure;
 
 namespace Optimal.Framework.Configuration
@@ -13,10 +15,12 @@ namespace Optimal.Framework.Configuration
         {
             Singleton<ITypeFinder>.Instance = new TypeFinder();
             services.AddSingleton(Singleton<ITypeFinder>.Instance);
-            services.AddDbContext<ApplicationDbContext>(option =>
-            {
-                option.UseSqlServer(configuration.GetConnectionString("ConnectionString"));
-            });
+            services.AddSingleton<IDataProvider, BaseDataProvider>();
+            //services.AddDbContext<ApplicationDbContext>(option =>
+            //{
+            //    option.UseSqlServer(configuration.GetConnectionString("ConnectionString"));
+            //});
+            DataSettingManager.LoadSettings(configuration);
         }
 
     }
