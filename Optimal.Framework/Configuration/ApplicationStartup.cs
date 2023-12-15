@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Optimal.Framework.ConfigManager.DataConfig;
-using Optimal.Framework.Data;
 using Optimal.Framework.Data.DataProvider;
 using Optimal.Framework.Infrastructure;
 
