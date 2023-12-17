@@ -17,7 +17,7 @@ namespace Optimal.Framework.Configuration
             services.AddSingleton<IAppDataProvider, BaseDataProvider>();
             DataSettingManager.LoadSettings(configuration);
             services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
-            services.AddScoped<IJwtTokenService, JwtTokenService>();
+            //services.AddScoped<IJwtTokenService, JwtTokenService>();
         }
 
     }
