@@ -5,6 +5,7 @@ using Optimal.Framework.Data;
 using Optimal.Framework.Data.DataProvider;
 using Optimal.Framework.Infrastructure;
 using Optimal.Framework.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Optimal.Framework.Configuration
 {
@@ -18,6 +19,9 @@ namespace Optimal.Framework.Configuration
             DataSettingManager.LoadSettings(configuration);
             services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
             //services.AddScoped<IJwtTokenService, JwtTokenService>();
+            IEngine engine = EngineContext.Create();
+            engine.ConfigureServices(services, configuration);
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         }
 
     }
