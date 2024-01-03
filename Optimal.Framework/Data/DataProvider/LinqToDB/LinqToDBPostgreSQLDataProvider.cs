@@ -8,9 +8,9 @@ namespace Optimal.Framework.Data.DataProvider.LinqToDB
 {
     public class LinqToDBPostgreSQLDataProvider : PostgreSQLDataProvider
     {
-        public LinqToDBPostgreSQLDataProvider()
-            : base("PostgreSQL", PostgreSQLVersion.v95)
+        public LinqToDBPostgreSQLDataProvider() : base("PostgreSQL", PostgreSQLVersion.v95)
         {
+
         }
 
         public override void SetParameter(DataConnection dataConnection, DbParameter parameter, string name, DbDataType dataType, object value)
