@@ -19,7 +19,7 @@ namespace Optimal.Framework.Data.DataProvider
         {
             get
             {
-                switch(_dataProvider)
+                switch (_dataProvider)
                 {
                     case "mysql":
                         return MySqlTools.GetDataProvider("MySqlConnector");
@@ -29,10 +29,12 @@ namespace Optimal.Framework.Data.DataProvider
                         Lazy<IDataProvider> _dataProvider = new Lazy<IDataProvider>(() => new LinqToDBPostgreSQLDataProvider(), isThreadSafe: true);
                         return _dataProvider.Value;
                     default:
-                        return SqlServerTools.GetDataProvider(SqlServerVersion.v2012, SqlServerProvider.MicrosoftDataSqlClient); 
+                        return SqlServerTools.GetDataProvider(SqlServerVersion.v2012, SqlServerProvider.MicrosoftDataSqlClient);
                 }
             }
         }
+
+        //protected IDataProvider LinqToDbDataProvider => SqlServerTools.GetDataProvider(SqlServerVersion.v2012, SqlServerProvider.MicrosoftDataSqlClient);
 
         public IQueryable<TEntity> GetTable<TEntity>() where TEntity : BaseEntity
         {
