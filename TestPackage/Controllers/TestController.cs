@@ -10,11 +10,12 @@ namespace TestPackage.Controllers
     public class TestController:BaseController
     {
 
-        private readonly IRepository<UserAccount> _userAccountRepository; //= EngineContext.Current.Resolve<IRepository<UserAccount>>();
-        public TestController(IRepository<UserAccount> userAccountRepository)
-        {
-            _userAccountRepository = userAccountRepository;
-        }
+        private readonly IRepository<UserAccount> _userAccountRepository= EngineContext.Current.Resolve<IRepository<UserAccount>>();
+        //private readonly IRepository<UserAccount> _userAccountRepository; //= EngineContext.Current.Resolve<IRepository<UserAccount>>();
+        //public TestController(IRepository<UserAccount> userAccountRepository)
+        //{
+        //    _userAccountRepository = userAccountRepository;
+        //}
 
         [HttpGet]
         public async Task<IActionResult> TestGetAll()

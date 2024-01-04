@@ -6,22 +6,23 @@ using Optimal.Framework.Data.DataProvider;
 using Optimal.Framework.Infrastructure;
 using Optimal.Framework.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Builder;
 
 namespace Optimal.Framework.Configuration
 {
     public static class ApplicationStartup
     {
-        public static void ConfigureApplicationServices(this IServiceCollection services, IConfiguration configuration)
+        public static void ConfigureApplicationServices(this IServiceCollection services, WebApplicationBuilder builder)
         {
             Singleton<ITypeFinder>.Instance = new TypeFinder();
             services.AddSingleton(Singleton<ITypeFinder>.Instance);
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IAppDataProvider, BaseDataProvider>();
-            DataSettingManager.LoadSettings(configuration);
+            DataSettingManager.LoadSettings(builder.Configuration);
             services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
             //services.AddScoped<IJwtTokenService, JwtTokenService>();
             IEngine engine = EngineContext.Create();
-            engine.ConfigureServices(services, configuration);
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            engine.ConfigureServices(services, builder.Configuration);
         }
 
     }

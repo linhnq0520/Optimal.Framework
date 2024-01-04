@@ -21,15 +21,7 @@ namespace Optimal.Framework.Infrastructure
 
         protected virtual void RunStartupTasks()
         {
-        }
-        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault((Assembly a) => a.FullName == args.Name);
-            if (assembly != null)
-            {
-                return assembly;
-            }
-            return Singleton<ITypeFinder>.Instance?.GetAssemblies().FirstOrDefault((Assembly a) => a.FullName == args.Name);
+
         }
 
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
@@ -44,7 +36,8 @@ namespace Optimal.Framework.Infrastructure
             }
             services.AddSingleton(services);
             RunStartupTasks();
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+            ServiceProvider = services.BuildServiceProvider();
+            EngineContext.Replace(this);
         }
 
         public T Resolve<T>(IServiceScope scope = null) where T : class
