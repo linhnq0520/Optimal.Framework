@@ -26,7 +26,7 @@ namespace Optimal.Framework.Data.DataProvider
                     case "oracle":
                         return OracleTools.GetDataProvider(OracleVersion.v12, OracleProvider.Managed);
                     case "postgresql":
-                        Lazy<IDataProvider> _dataProvider = new Lazy<IDataProvider>(() => new LinqToDBPostgreSQLDataProvider(), isThreadSafe: true);
+                        Lazy<IDataProvider> _dataProvider = new(() => new LinqToDBPostgreSQLDataProvider(), isThreadSafe: true);
                         return _dataProvider.Value;
                     default:
                         return SqlServerTools.GetDataProvider(SqlServerVersion.v2012, SqlServerProvider.MicrosoftDataSqlClient);

@@ -5,7 +5,5 @@
         public string ConnectionString { get; set; }
 
         public string DataProvider { get; set; }
-
-        public int? SQLCommandTimeout { get; set; }
     }
 }

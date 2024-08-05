@@ -1,10 +1,6 @@
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.IO;
 
 namespace Optimal.Framework.Client
 {
@@ -99,10 +95,10 @@ namespace Optimal.Framework.Client
             // ...
 
             // Tạo response
-            string response = $"Response for message: {message}";
+            //string response = $"Response for message: {message}";
 
             // Gửi response vào queue response
-            SendMessage(_serviceInfo.broker_response_queue_name, response);
+            //SendMessage(_serviceInfo.broker_response_queue_name, response);
         }
 
         public void SendMessage(string queueName, string message)

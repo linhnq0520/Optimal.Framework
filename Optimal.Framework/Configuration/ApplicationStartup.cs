@@ -1,10 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Optimal.Framework.Data.ConfigManager;
 using Optimal.Framework.Data;
 using Optimal.Framework.Data.DataProvider;
 using Optimal.Framework.Infrastructure;
-using Optimal.Framework.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Builder;
 

@@ -7,9 +7,24 @@ namespace Optimal.Framework.Data.ConfigManager
     {
         public static DataConfig LoadSettings(IConfiguration configuration)
         {
-            if (Singleton<DataConfig>.Instance == null) Singleton<DataConfig>.Instance = new DataConfig();
-            Singleton<DataConfig>.Instance.ConnectionString = configuration.GetConnectionString("ConnectionString");
+            if (Singleton<DataConfig>.Instance == null)
+                Singleton<DataConfig>.Instance = new DataConfig();
+
+            var connectionStringsSection = configuration.GetConnectionString();
+
+            if (connectionStringsSection != null)
+            {
+                Singleton<DataConfig>.Instance = new DataConfig();
+                configuration.Bind("ConnectionStrings", Singleton<DataConfig>.Instance);
+            }
+
             return Singleton<DataConfig>.Instance;
         }
+
+        public static IConfigurationSection GetConnectionString(this IConfiguration configuration)
+        {
+            return configuration?.GetSection("ConnectionStrings");
+        }
     }
+
 }
