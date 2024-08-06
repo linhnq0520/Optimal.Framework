@@ -34,8 +34,6 @@ namespace Optimal.Framework.Data.DataProvider
             }
         }
 
-        //protected IDataProvider LinqToDbDataProvider => SqlServerTools.GetDataProvider(SqlServerVersion.v2012, SqlServerProvider.MicrosoftDataSqlClient);
-
         public IQueryable<TEntity> GetTable<TEntity>() where TEntity : BaseEntity
         {
             var context = new DataContext(LinqToDbDataProvider, _connectionString) 

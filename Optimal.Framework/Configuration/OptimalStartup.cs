@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Builder;
 
 namespace Optimal.Framework.Configuration
 {
-    public static class ApplicationStartup
+    public static class OptimalStartup
     {
         public static void ConfigureApplicationServices(this IServiceCollection services, WebApplicationBuilder builder)
         {

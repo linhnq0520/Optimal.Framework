@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Optimal.Framework.Infrastructure
 {
-    public interface IApplicationStartup
+    public interface IOptimalStartup
     {
         int Order {  get; }
         void ConfigureServices(IServiceCollection services, IConfiguration configuration);

@@ -19,7 +19,7 @@ namespace Optimal.Framework.Infrastructure
         [MethodImpl(MethodImplOptions.Synchronized)]
         public static IEngine Create()
         {
-            return Singleton<IEngine>.Instance ?? (Singleton<IEngine>.Instance = new ApplicationEngine());
+            return Singleton<IEngine>.Instance ?? (Singleton<IEngine>.Instance = new OptimalEngine());
         }
 
         public static void Replace(IEngine engine)

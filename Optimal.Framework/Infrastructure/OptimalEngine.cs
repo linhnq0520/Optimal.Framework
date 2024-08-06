@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
 namespace Optimal.Framework.Infrastructure
 {
-    public class ApplicationEngine:IEngine
+    public class OptimalEngine : IEngine
     {
         public virtual IServiceProvider ServiceProvider { get; protected set; }
 
@@ -22,12 +23,21 @@ namespace Optimal.Framework.Infrastructure
         {
 
         }
+        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault((Assembly a) => a.FullName == args.Name);
+            if (assembly != null)
+            {
+                return assembly;
+            }
+            return Singleton<ITypeFinder>.Instance?.GetAssemblies().FirstOrDefault((Assembly a) => a.FullName == args.Name);
+        }
 
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
             services.AddSingleton((IEngine)this);
-            foreach (IApplicationStartup item in from startup in Singleton<ITypeFinder>.Instance.FindClassesOfType<IApplicationStartup>()
-                                             select (IApplicationStartup)Activator.CreateInstance(startup) into startup
+            foreach (IOptimalStartup item in from startup in Singleton<ITypeFinder>.Instance.FindClassesOfType<IOptimalStartup>()
+                                             select (IOptimalStartup)Activator.CreateInstance(startup) into startup
                                              orderby startup.Order
                                              select startup)
             {
@@ -37,6 +47,21 @@ namespace Optimal.Framework.Infrastructure
             RunStartupTasks();
             ServiceProvider = services.BuildServiceProvider();
             EngineContext.Replace(this);
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+        }
+        public void ConfigureRequestPipeline(IApplicationBuilder application)
+        {
+            ServiceProvider = application.ApplicationServices;
+            ITypeFinder typeFinder = Resolve<ITypeFinder>();
+            IEnumerable<Type> source = typeFinder.FindClassesOfType<IOptimalStartup>();
+            IOrderedEnumerable<IOptimalStartup> orderedEnumerable = from startup in source
+                                                                    select (IOptimalStartup)Activator.CreateInstance(startup) into startup
+                                                                    orderby startup.Order
+                                                                    select startup;
+            foreach (IOptimalStartup item in orderedEnumerable)
+            {
+                item.Configure(application);
+            }
         }
 
         public T Resolve<T>(IServiceScope scope = null) where T : class
