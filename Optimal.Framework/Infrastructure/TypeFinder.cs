@@ -7,7 +7,7 @@ namespace Optimal.Framework.Infrastructure
         public IEnumerable<Type> FindClassesOfType<T>(bool onlyConcreteClasses = true)
         {
             Type assignTypeFrom = typeof(T);
-            List<Type> result = new List<Type>();
+            List<Type> result = [];
 
             foreach (Assembly assembly in GetAssemblies())
             {
@@ -33,7 +33,7 @@ namespace Optimal.Framework.Infrastructure
 
         public virtual IList<Assembly> GetAssemblies()
         {
-            return AppDomain.CurrentDomain.GetAssemblies().ToList();
+            return [.. AppDomain.CurrentDomain.GetAssemblies()];
         }
 
         protected virtual void HandleReflectionTypeLoadException(ReflectionTypeLoadException ex)

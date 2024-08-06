@@ -1,10 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Optimal.Framework.Data.ConfigManager;
-using Optimal.Framework.Data;
-using Optimal.Framework.Data.DataProvider;
 using Optimal.Framework.Infrastructure;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 
 namespace Optimal.Framework.Configuration
 {
@@ -12,12 +9,22 @@ namespace Optimal.Framework.Configuration
     {
         public static void ConfigureApplicationServices(this IServiceCollection services, WebApplicationBuilder builder)
         {
-            Singleton<ITypeFinder>.Instance = new TypeFinder();
-            services.AddSingleton(Singleton<ITypeFinder>.Instance);
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddSingleton<IAppDataProvider, BaseDataProvider>();
-            DataSettingManager.LoadSettings(builder.Configuration);
-            services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
+            services.AddHttpContextAccessor();
+            TypeFinder typeFinder = (TypeFinder)(Singleton<ITypeFinder>.Instance = new TypeFinder());
+            services.AddSingleton((ITypeFinder) typeFinder);
+            List<IConfig> list = (from configType in typeFinder.FindClassesOfType<IConfig>()
+                                  select (IConfig)Activator.CreateInstance(configType)).ToList();
+            AppSettings implementationInstance = null;
+            foreach (IConfig item in list)
+            {
+                builder.Configuration.GetSection(item.Name).Bind(item, delegate (BinderOptions options)
+                {
+                    options.BindNonPublicProperties = true;
+                });
+                implementationInstance = AppSettingsHelper.SaveAppSettings(item, item.Name);
+                services.AddSingleton(implementationInstance);
+            }
+
             //services.AddScoped<IJwtTokenService, JwtTokenService>();
             IEngine engine = EngineContext.Create();
             engine.ConfigureServices(services, builder.Configuration);
