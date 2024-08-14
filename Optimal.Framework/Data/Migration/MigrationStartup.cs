@@ -7,7 +7,7 @@ namespace Optimal.Framework.Data.Migration
 {
     public class MigrationStartup : IOptimalStartup
     {
-        public int Order => throw new NotImplementedException();
+        public int Order => 3;
 
         public void Configure(IApplicationBuilder application)
         {
