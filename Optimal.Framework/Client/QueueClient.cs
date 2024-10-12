@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -6,20 +8,36 @@ namespace Optimal.Framework.Client
 {
     public class QueueClient : IDisposable
     {
+        public delegate void MessageDeliveringDelegate(string content);
+        public event MessageDeliveringDelegate MessageDelivering;
+        private bool IsConnected;
+        private readonly object objLockSetup = new object();
         private readonly ServiceInfo _serviceInfo;
+        private ConnectionFactory _factory;
         private IConnection _connection;
         private IModel _channel;
-        private EventingBasicConsumer _consumer;
+        private EventingBasicConsumer CommandQueueConsumer;
+        private string InstanceID { get; } = Guid.NewGuid().ToString();
         private bool _disposed = false;
         private string _consumerTag;
-        public event EventHandler<string> MessageReceived;
-        public event EventHandler<string> ResponseReceived;
 
         public QueueClient(ServiceInfo serviceInfo)
         {
             _serviceInfo = serviceInfo ?? throw new ArgumentNullException(nameof(serviceInfo));
-            Connect();
-            Subscribe();
+            try
+            {
+                lock (objLockSetup)
+                {
+                    if (!IsConnected)
+                    {
+                        AutoConfigure();
+                    }
+                }
+            }
+            catch (Exception pException)
+            {
+                Console.WriteLine(pException);
+            }
         }
 
         public void Connect()
@@ -43,73 +61,6 @@ namespace Optimal.Framework.Client
             _channel.QueueDeclare(_serviceInfo.broker_queue_name, durable: true, exclusive: false, autoDelete: false);
         }
 
-        private void ConfigureSSL(ConnectionFactory factory)
-        {
-            if (!_serviceInfo.ssl_active) return;
-
-            factory.Ssl.Enabled = true;
-            factory.Ssl.CertPath = GetLocalCertPath(_serviceInfo.ssl_cert_base64);
-            factory.Ssl.CertPassphrase = _serviceInfo.ssl_cert_pass_pharse;
-            factory.Ssl.ServerName = _serviceInfo.ssl_cert_servername;
-        }
-
-        public void Subscribe()
-        {
-            _consumer = new EventingBasicConsumer(_channel);
-            _consumer.Received += (model, ea) =>
-            {
-                var body = ea.Body.ToArray();
-                var message = Encoding.UTF8.GetString(body);
-                Console.WriteLine($" [x] Received {message}");
-
-                MessageReceived?.Invoke(this, message);
-
-                _channel.BasicAck(ea.DeliveryTag, false);
-            };
-
-            _consumerTag = _channel.BasicConsume(_serviceInfo.broker_queue_name, false, _consumer);
-        }
-
-        public void SubscribeResponse()
-        {
-            _consumer = new EventingBasicConsumer(_channel);
-            _consumer.Received += (model, ea) =>
-            {
-                var body = ea.Body.ToArray();
-                var response = Encoding.UTF8.GetString(body);
-                Console.WriteLine($" [x] Received response: {response}");
-
-                // Trigger event ResponseReceived
-                ResponseReceived?.Invoke(this, response);
-
-                _channel.BasicAck(ea.DeliveryTag, false);
-            };
-
-            _consumerTag = _channel.BasicConsume(_serviceInfo.broker_response_queue_name, false, _consumer);
-        }
-
-        public void ProcessMessage(string message)
-        {
-            // Logic xử lý message
-            Console.WriteLine($"Processing message: {message}");
-            // ...
-
-            // Tạo response
-            //string response = $"Response for message: {message}";
-
-            // Gửi response vào queue response
-            //SendMessage(_serviceInfo.broker_response_queue_name, response);
-        }
-
-        public void SendMessage(string queueName, string message)
-        {
-            if (string.IsNullOrEmpty(message))
-                throw new ArgumentNullException(nameof(message));
-
-            var body = Encoding.UTF8.GetBytes(message);
-            _channel.BasicPublish(string.Empty, queueName, null, body);
-        }
-
         private string GetLocalCertPath(string certBase64)
         {
             if (string.IsNullOrEmpty(certBase64)) return null;
@@ -121,49 +72,204 @@ namespace Optimal.Framework.Client
             return certPath;
         }
 
-        public void Dispose()
+        private void ConfigureSSL(ConnectionFactory factory)
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            if (!_serviceInfo.ssl_active) return;
+
+            factory.Ssl.Enabled = true;
+            factory.Ssl.CertPath = GetLocalCertPath(_serviceInfo.ssl_cert_base64);
+            factory.Ssl.CertPassphrase = _serviceInfo.ssl_cert_pass_pharse;
+            factory.Ssl.ServerName = _serviceInfo.ssl_cert_servername;
         }
 
-        protected virtual void Dispose(bool disposing)
+        private bool CreateFactory()
         {
-            if (_disposed) return;
-
-            if (disposing)
+            try
             {
-                try
+                _connection?.Close();
+                _connection?.Dispose();
+            }
+            catch
+            {
+            }
+            _factory = new ConnectionFactory
+            {
+                VirtualHost = _serviceInfo.broker_virtual_host,
+                HostName = _serviceInfo.broker_hostname,
+                AutomaticRecoveryEnabled = true,
+                NetworkRecoveryInterval = TimeSpan.FromSeconds(15.0),
+                RequestedHeartbeat = TimeSpan.FromSeconds(30.0),
+                ClientProvidedName = "QueueClient:" + _serviceInfo.service_code
+            };
+            if (_serviceInfo.ssl_active)
+            {
+                ConfigureSSL(_factory);
+            }
+            else
+            {
+            }
+            return true;
+        }
+        private void ConnectionShutdown(object sender, ShutdownEventArgs e)
+        {
+            try
+            {
+                _connection?.Close();
+                _connection?.Dispose();
+            }
+            catch
+            {
+            }
+            IsConnected = false;
+        }
+        private bool CreateConnection()
+        {
+            if (_factory == null)
+            {
+                CreateFactory();
+            }
+            try
+            {
+                _channel?.Dispose();
+            }
+            catch
+            {
+            }
+            try
+            {
+                _connection?.Close();
+                _connection?.Dispose();
+            }
+            catch
+            {
+            }
+            _factory.HostName = _serviceInfo.broker_hostname;
+            _factory.Port = (_serviceInfo.broker_port > 0) ? _serviceInfo.broker_port : _factory.Port;
+            _factory.VirtualHost = _serviceInfo.broker_virtual_host;
+            _factory.UserName = _serviceInfo.broker_user_name;
+            _factory.Password = _serviceInfo.broker_user_password;
+            _connection = _factory.CreateConnection();
+            _connection.ConnectionShutdown += ConnectionShutdown;
+            IsConnected = true;
+            return true;
+        }
+
+        private bool CreateChannel()
+        {
+            if (_factory == null)
+            {
+                CreateFactory();
+            }
+            if (_connection == null)
+            {
+                CreateConnection();
+            }
+            _channel = _connection.CreateModel();
+            return true;
+        }
+
+        public bool CreateQueue(string pQueueName)
+        {
+            _channel.QueueDeclare(pQueueName, durable: true, exclusive: false, autoDelete: false, null);
+            return true;
+        }
+
+        private bool Setup()
+        {
+            lock (objLockSetup)
+            {
+                CreateFactory();
+                CreateConnection();
+                CreateChannel();
+                CreateQueue(_serviceInfo.broker_queue_name);
+            }
+            return true;
+        }
+
+        private void CommandMessageComingHandler(object sender, BasicDeliverEventArgs e)
+        {
+            try
+            {
+                if (this.MessageDelivering == null)
                 {
-                    // Hủy đăng ký consumer nếu đang hoạt động
-                    if (_channel != null && _channel.IsOpen && !string.IsNullOrEmpty(_consumerTag))
-                    {
-                        _channel.BasicCancel(_consumerTag);
-                    }
-
-                    _channel?.Close();
-                    _channel?.Dispose();
-                    _connection?.Close();
-                    _connection?.Dispose();
-
-                    // Xóa tệp chứng chỉ tạm thời nếu có
-                    if (!string.IsNullOrEmpty(_serviceInfo.ssl_cert_base64))
-                    {
-                        var tempCertPath = GetLocalCertPath(_serviceInfo.ssl_cert_base64);
-                        if (File.Exists(tempCertPath))
-                        {
-                            File.Delete(tempCertPath);
-                        }
-                    }
+                    return;
                 }
-                catch (Exception ex)
+                byte[] array = e.Body.ToArray();
+                string @string = Encoding.UTF8.GetString(array, 0, array.Length);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                _channel.BasicAck(e.DeliveryTag, multiple: false);
+            }
+        }
+
+        public void Subscribe()
+        {
+            if (_serviceInfo.broker_queue_name.Length != 0)
+            {
+                CommandQueueConsumer = new EventingBasicConsumer(_channel);
+                CommandQueueConsumer.Received += CommandMessageComingHandler;
+                _channel.BasicConsume(_serviceInfo.broker_queue_name, autoAck: false, CommandQueueConsumer);
+            }
+        }
+
+        public bool AutoConfigure()
+        {
+            lock (objLockSetup)
+            {
+                Setup();
+                if (this.MessageDelivering != null)
                 {
-                    // Log the exception
-                    Console.WriteLine($"Error during dispose: {ex.Message}");
+                    Subscribe();
                 }
             }
+            ThreadPool.GetMinThreads(out var workerThreads, out var completionPortThreads);
+            ThreadPool.SetMinThreads(200, completionPortThreads);
+            return true;
+        }
 
-            _disposed = true;
+        public void SendMessage(string pQueueName, string pContent)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(pContent);
+            _channel.BasicPublish("", pQueueName, null, bytes);
+        }
+
+        private string SerializeObjectWithSnakeCaseNaming(object obj)
+        {
+            if (obj == null)
+            {
+                return null;
+            }
+            DefaultContractResolver contractResolver = new DefaultContractResolver
+            {
+                NamingStrategy = new SnakeCaseNamingStrategy()
+            };
+            JsonSerializerSettings settings = new JsonSerializerSettings
+            {
+                ContractResolver = contractResolver,
+                Formatting = Formatting.Indented
+            };
+            return JsonConvert.SerializeObject(obj, settings);
+        }
+
+        public void ReplyMessage(string message)
+        {
+
+        }
+
+        public void Dispose()
+        {
+            _channel?.Dispose();
+            _connection?.Dispose();
+            if (_factory != null)
+            {
+                _channel.Dispose();
+            }
         }
     }
 }
