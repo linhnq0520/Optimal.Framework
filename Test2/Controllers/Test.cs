@@ -30,18 +30,19 @@ namespace Test2.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> TestQueue()
-        {
-            await Task.CompletedTask;
-            var result ="";
-            _queueClient.MessageReceived += (sender, message) =>
-            {
-                Console.WriteLine($"Message received: {message}");
-                result = message;
-                // Xử lý tin nhắn tại đây
-            };
+public async Task<IActionResult> TestQueue()
+{
+    var tcs = new TaskCompletionSource<string>();
 
-            return Ok(result);
-        }
+    _queueClient.MessageReceived += (sender, message) =>
+    {
+        Console.WriteLine($"Message received: {message}");
+        tcs.SetResult(message);
+    };
+
+    var result = await tcs.Task; // This waits until the message is received
+    return Ok(result);
+}
+
     }
 }
