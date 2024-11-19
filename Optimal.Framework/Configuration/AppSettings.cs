@@ -1,26 +1,27 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
+using Newtonsoft.Json.Linq;
 
 namespace Optimal.Framework.Configuration
 {
-    public class AppSettings
+    public class AppSettings(IList<IConfig> configurations = null)
     {
-        private readonly Dictionary<Type, IConfig> _configurations = [];
+        private readonly Dictionary<Type, IConfig> _configurations =
+            configurations
+                ?.OrderBy((IConfig config) => config.GetOrder())
+                ?.ToDictionary((IConfig config) => config.GetType(), (IConfig config) => config)
+            ?? [];
 
         [JsonExtensionData]
         public Dictionary<string, JToken> Configuration { get; set; } = [];
 
-        public AppSettings(IList<IConfig> configurations = null)
+        public TConfig Get<TConfig>()
+            where TConfig : class, IConfig
         {
-            _configurations = configurations?.OrderBy((IConfig config) => config.GetOrder())?.ToDictionary((IConfig config) => config.GetType(), (IConfig config) => config) ?? new Dictionary<Type, IConfig>();
-        }
-
-        public TConfig Get<TConfig>() where TConfig : class, IConfig
-        {
-            if (_configurations[typeof(TConfig)] is not TConfig result)
-            {
-                throw new Exception($"No configuration with type '{typeof(TConfig)}' found");
-            }
+            //if (_configurations[typeof(TConfig)] is null || _configurations[typeof(TConfig)] is not TConfig result)
+            //{
+            //    throw new Exception($"No configuration with type '{typeof(TConfig)}' found");
+            //}
+            var result = Configuration[typeof(TConfig).Name].ToObject<TConfig>();
 
             return result;
         }

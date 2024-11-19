@@ -21,7 +21,7 @@ namespace Optimal.Framework.Data.Migration
 
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddScoped<IMigrationManager, MigrationManager>();
+            //services.AddScoped<IMigrationManager, MigrationManager>();
         }
     }
 }

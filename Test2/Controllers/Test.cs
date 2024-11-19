@@ -2,46 +2,64 @@
 using Microsoft.AspNetCore.Mvc;
 using Optimal.Framework.Client;
 using Optimal.Framework.Controller;
+using Optimal.Framework.Messaging.Contracts;
+using Optimal.Framework.Messaging.Services;
 
 namespace Test2.Controllers
 {
     [ApiController]
     [Route("api/[controller]/[action]")]
-
     public class Test2Controller : BaseController
     {
-        private readonly QueueClient _queueClient;
-        public Test2Controller()
-        {
-            var serviceInfo = new ServiceInfo
-            {
-                broker_hostname = "localhost",
-                broker_port = 5672,
-                broker_virtual_host = "/",
-                broker_user_name = "guest",
-                broker_user_password = "guest",
-                broker_queue_name = "TEST2",
-                broker_response_queue_name = "TES1",
-                ssl_active = false
-            };
+        private readonly IMessageService _messageService;
 
-            var queueClient = new QueueClient(serviceInfo);
-            _queueClient = queueClient;
+        public Test2Controller(IMessageService messageService)
+        {
+            _messageService = messageService;
         }
 
         [HttpGet]
         public async Task<IActionResult> TestQueue()
         {
             await Task.CompletedTask;
-            var result ="";
-            _queueClient.MessageReceived += (sender, message) =>
-            {
-                Console.WriteLine($"Message received: {message}");
-                result = message;
-                // Xử lý tin nhắn tại đây
-            };
+            var mesage = new WorkflowMessage();
+            mesage.Request = "hello linh ne";
+            await _messageService.SendAsync(mesage, "notification-service-queue");
 
-            return Ok(result);
+            return Ok("sucess");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TestExchange()
+        {
+            await Task.CompletedTask;
+            var mesage = new WorkflowMessage();
+            mesage.Request = "hello linh ne";
+            await _messageService.SendAsync(mesage, "exchange_notification-service-queue");
+
+            return Ok("sucess");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TestExchange1()
+        {
+            await Task.CompletedTask;
+            var mesage = new WorkflowMessage();
+            mesage.Request = "hello linh ne";
+            await _messageService.SendAsync(mesage, "notification-service-queue");
+
+            return Ok("sucess");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TestPublish()
+        {
+            await Task.CompletedTask;
+            var mesage = new WorkflowMessage();
+            mesage.Request = "hello linh ne";
+            await _messageService.PublishAsync(mesage);
+
+            return Ok("sucess");
         }
     }
 }

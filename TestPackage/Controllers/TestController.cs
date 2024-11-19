@@ -3,6 +3,7 @@ using Optimal.Framework.Client;
 using Optimal.Framework.Controller;
 using Optimal.Framework.Data;
 using Optimal.Framework.Infrastructure;
+using TestPackage.Serivces;
 
 namespace TestPackage.Controllers
 {
@@ -11,8 +12,10 @@ namespace TestPackage.Controllers
     public class TestController : BaseController
     {
         private readonly QueueClient _queueClient;
-        public TestController()
+        private readonly ICustomerService _customerService;
+        public TestController(ICustomerService customerService)
         {
+            _customerService = customerService;
             var serviceInfo = new ServiceInfo
             {
                 broker_hostname = "localhost",

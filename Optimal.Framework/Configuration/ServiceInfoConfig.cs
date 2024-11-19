@@ -1,8 +1,11 @@
-namespace Optimal.Framework.Client
+using Optimal.Framework.Client;
+
+namespace Optimal.Framework.Configuration
 {
-    public class ServiceInfo : IConfig
+    public class ServiceInfoConfig
     {
         public string Name => "ServiceInfo";
+        public ServiceInfo ServiceInfo { get; set; }
         public string service_code { get; set; }
         public string broker_hostname { get; set; }
         public int broker_port { get; set; }

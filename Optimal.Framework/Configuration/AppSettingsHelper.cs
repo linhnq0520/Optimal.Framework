@@ -1,12 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using Optimal.Framework.Infrastructure;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Optimal.Framework.Helper;
+using Optimal.Framework.Infrastructure;
 
 namespace Optimal.Framework.Configuration
 {
@@ -23,6 +17,5 @@ namespace Optimal.Framework.Configuration
 
             return appSettings;
         }
-
     }
 }

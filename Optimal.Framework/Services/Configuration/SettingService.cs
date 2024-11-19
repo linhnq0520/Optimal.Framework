@@ -1,20 +1,21 @@
-﻿using Optimal.Framework.Configuration;
-using Optimal.Framework.Data;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Reflection;
-using Optimal.Framework.Helper;
 using LinqToDB;
+using Optimal.Framework.Data;
 using Optimal.Framework.Domain;
+using Optimal.Framework.Helper;
 
 namespace Optimal.Framework.Services.Configuration
 {
     internal class SettingService : ISettingService
     {
         private readonly IRepository<Setting> _settingRepository;
+
         public SettingService(IRepository<Setting> settingRepository)
         {
             _settingRepository = settingRepository;
         }
+
         public virtual async Task<ISetting> LoadSetting(Type type)
         {
             var settings = Activator.CreateInstance(type) as ISetting;
@@ -27,20 +28,27 @@ namespace Optimal.Framework.Services.Configuration
                     {
                         string key = type.Name + "." + prop.Name;
                         string setting = await GetSettingByKey<string>(key, null);
-                        if (setting != null && TypeDescriptor.GetConverter(prop.PropertyType).CanConvertFrom(typeof(string)) && TypeDescriptor.GetConverter(prop.PropertyType).IsValid(setting))
+                        if (
+                            setting != null
+                            && TypeDescriptor
+                                .GetConverter(prop.PropertyType)
+                                .CanConvertFrom(typeof(string))
+                            && TypeDescriptor.GetConverter(prop.PropertyType).IsValid(setting)
+                        )
                         {
-                            object value = TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromInvariantString(setting);
+                            object value = TypeDescriptor
+                                .GetConverter(prop.PropertyType)
+                                .ConvertFromInvariantString(setting);
                             prop.SetValue(settings, value);
                         }
                     }
                 }
             }
-            catch
-            {
-            }
+            catch { }
 
             return settings;
         }
+
         public virtual async Task<T> GetSettingByKey<T>(string key, T defaultValue = default(T))
         {
             if (string.IsNullOrEmpty(key))
@@ -60,10 +68,12 @@ namespace Optimal.Framework.Services.Configuration
 
             return (setting != null) ? CommonHelper.To<T>(setting.Value) : defaultValue;
         }
+
         protected virtual async Task<IDictionary<string, IList<Setting>>> GetAllSettingsDictionary()
         {
             IList<Setting> settings = await GetAllSettings();
-            Dictionary<string, IList<Setting>> dictionary = new Dictionary<string, IList<Setting>>();
+            Dictionary<string, IList<Setting>> dictionary =
+                new Dictionary<string, IList<Setting>>();
             foreach (Setting s in settings)
             {
                 string resourceName = s.Name.ToLowerInvariant();
@@ -71,7 +81,7 @@ namespace Optimal.Framework.Services.Configuration
                 {
                     Id = s.Id,
                     Name = s.Name,
-                    Value = s.Value
+                    Value = s.Value,
                 };
                 if (!dictionary.ContainsKey(resourceName))
                 {
@@ -85,6 +95,7 @@ namespace Optimal.Framework.Services.Configuration
 
             return dictionary;
         }
+
         public virtual async Task<IList<Setting>> GetAllSettings()
         {
             return await _settingRepository.Table.ToListAsync();

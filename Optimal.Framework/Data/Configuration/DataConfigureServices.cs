@@ -4,11 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Optimal.Framework.Data.ConfigManager;
 using Optimal.Framework.Data.DataProvider;
 using Optimal.Framework.Infrastructure;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Optimal.Framework.Data.Configuration
 {

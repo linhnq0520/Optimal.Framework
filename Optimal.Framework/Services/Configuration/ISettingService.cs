@@ -1,6 +1,4 @@
-﻿using Optimal.Framework.Configuration;
-
-namespace Optimal.Framework.Services.Configuration
+﻿namespace Optimal.Framework.Services.Configuration
 {
     public interface ISettingService
     {
