@@ -8,7 +8,7 @@ namespace Optimal.Framework.Configuration
         private readonly Dictionary<Type, IConfig> _configurations = [];
 
         [JsonExtensionData]
-        public Dictionary<string, JToken> Configuration { get; set; }
+        public Dictionary<string, JToken> Configuration { get; set; } = [];
 
         public AppSettings(IList<IConfig> configurations = null)
         {
