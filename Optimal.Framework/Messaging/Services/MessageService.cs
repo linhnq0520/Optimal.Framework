@@ -18,12 +18,18 @@ namespace Optimal.Framework.Messaging.Services
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly IBus _bus;
         private readonly ServiceInfo _serviceInfo;
+        private readonly ISendEndpointProvider _sendEndpointProvider;
 
-        public MessageService(IPublishEndpoint publishEndpoint, IBus bus)
+        public MessageService(
+            IPublishEndpoint publishEndpoint,
+            IBus bus,
+            ISendEndpointProvider sendEndpointProvider
+        )
         {
             _publishEndpoint = publishEndpoint;
             _bus = bus;
             _serviceInfo = Singleton<AppSettings>.Instance.Get<ServiceInfo>();
+            _sendEndpointProvider = sendEndpointProvider;
         }
 
         public async Task PublishAsync<T>(T message)
@@ -35,10 +41,29 @@ namespace Optimal.Framework.Messaging.Services
         public async Task SendAsync<T>(T message, string queueName)
             where T : class
         {
-            var endpoint = await _bus.GetSendEndpoint(
-                new Uri($"rabbitmq://{_serviceInfo.broker_hostname}/{queueName}?type=direct")
-            );
-            await endpoint.Send(message);
+            try
+            {
+                var endpointTest = await _sendEndpointProvider.GetSendEndpoint(
+                    new Uri(
+                        $"rabbitmq://{_serviceInfo.broker_hostname}/{_serviceInfo.WorkflowDirectExchange}?type=direct"
+                    )
+                );
+                var endpoint = await _bus.GetSendEndpoint(
+                    new Uri($"rabbitmq://{_serviceInfo.broker_hostname}/{queueName}?type=direct")
+                );
+                // await endpointTest.Send(message);
+                await endpointTest.Send(
+                    message,
+                    context =>
+                    {
+                        context.SetRoutingKey(queueName);
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
     }
 

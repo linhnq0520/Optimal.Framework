@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Optimal.Framework.Client;
+﻿using Microsoft.AspNetCore.Mvc;
 using Optimal.Framework.Controller;
 using Optimal.Framework.Messaging.Contracts;
 using Optimal.Framework.Messaging.Services;

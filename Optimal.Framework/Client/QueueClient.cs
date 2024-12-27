@@ -1,8 +1,8 @@
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Text;
 
 namespace Optimal.Framework.Client
 {
@@ -50,7 +50,7 @@ namespace Optimal.Framework.Client
                 UserName = _serviceInfo.broker_user_name,
                 Password = _serviceInfo.broker_user_password,
                 AutomaticRecoveryEnabled = true,
-                NetworkRecoveryInterval = TimeSpan.FromSeconds(10)
+                NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
             };
 
             ConfigureSSL(factory);
@@ -58,12 +58,18 @@ namespace Optimal.Framework.Client
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
-            _channel.QueueDeclare(_serviceInfo.broker_queue_name, durable: true, exclusive: false, autoDelete: false);
+            _channel.QueueDeclare(
+                _serviceInfo.broker_queue_name,
+                durable: true,
+                exclusive: false,
+                autoDelete: false
+            );
         }
 
         private string GetLocalCertPath(string certBase64)
         {
-            if (string.IsNullOrEmpty(certBase64)) return null;
+            if (string.IsNullOrEmpty(certBase64))
+                return null;
 
             var tempDir = Path.GetTempPath();
             var certPath = Path.Combine(tempDir, $"queue-client-cert-{Guid.NewGuid()}.pfx");
@@ -74,7 +80,8 @@ namespace Optimal.Framework.Client
 
         private void ConfigureSSL(ConnectionFactory factory)
         {
-            if (!_serviceInfo.ssl_active) return;
+            if (!_serviceInfo.ssl_active)
+                return;
 
             factory.Ssl.Enabled = true;
             factory.Ssl.CertPath = GetLocalCertPath(_serviceInfo.ssl_cert_base64);
@@ -89,9 +96,7 @@ namespace Optimal.Framework.Client
                 _connection?.Close();
                 _connection?.Dispose();
             }
-            catch
-            {
-            }
+            catch { }
             _factory = new ConnectionFactory
             {
                 VirtualHost = _serviceInfo.broker_virtual_host,
@@ -99,17 +104,16 @@ namespace Optimal.Framework.Client
                 AutomaticRecoveryEnabled = true,
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(15.0),
                 RequestedHeartbeat = TimeSpan.FromSeconds(30.0),
-                ClientProvidedName = "QueueClient:" + _serviceInfo.service_code
+                ClientProvidedName = "QueueClient:" + _serviceInfo.service_code,
             };
             if (_serviceInfo.ssl_active)
             {
                 ConfigureSSL(_factory);
             }
-            else
-            {
-            }
+            else { }
             return true;
         }
+
         private void ConnectionShutdown(object sender, ShutdownEventArgs e)
         {
             try
@@ -117,11 +121,10 @@ namespace Optimal.Framework.Client
                 _connection?.Close();
                 _connection?.Dispose();
             }
-            catch
-            {
-            }
+            catch { }
             IsConnected = false;
         }
+
         private bool CreateConnection()
         {
             if (_factory == null)
@@ -132,19 +135,16 @@ namespace Optimal.Framework.Client
             {
                 _channel?.Dispose();
             }
-            catch
-            {
-            }
+            catch { }
             try
             {
                 _connection?.Close();
                 _connection?.Dispose();
             }
-            catch
-            {
-            }
+            catch { }
             _factory.HostName = _serviceInfo.broker_hostname;
-            _factory.Port = (_serviceInfo.broker_port > 0) ? _serviceInfo.broker_port : _factory.Port;
+            _factory.Port =
+                (_serviceInfo.broker_port > 0) ? _serviceInfo.broker_port : _factory.Port;
             _factory.VirtualHost = _serviceInfo.broker_virtual_host;
             _factory.UserName = _serviceInfo.broker_user_name;
             _factory.Password = _serviceInfo.broker_user_password;
@@ -170,7 +170,13 @@ namespace Optimal.Framework.Client
 
         public bool CreateQueue(string pQueueName)
         {
-            _channel.QueueDeclare(pQueueName, durable: true, exclusive: false, autoDelete: false, null);
+            _channel.QueueDeclare(
+                pQueueName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                null
+            );
             return true;
         }
 
@@ -196,7 +202,6 @@ namespace Optimal.Framework.Client
                 }
                 byte[] array = e.Body.ToArray();
                 string @string = Encoding.UTF8.GetString(array, 0, array.Length);
-
             }
             catch (Exception ex)
             {
@@ -214,7 +219,11 @@ namespace Optimal.Framework.Client
             {
                 CommandQueueConsumer = new EventingBasicConsumer(_channel);
                 CommandQueueConsumer.Received += CommandMessageComingHandler;
-                _channel.BasicConsume(_serviceInfo.broker_queue_name, autoAck: false, CommandQueueConsumer);
+                _channel.BasicConsume(
+                    _serviceInfo.broker_queue_name,
+                    autoAck: false,
+                    CommandQueueConsumer
+                );
             }
         }
 
@@ -247,20 +256,17 @@ namespace Optimal.Framework.Client
             }
             DefaultContractResolver contractResolver = new DefaultContractResolver
             {
-                NamingStrategy = new SnakeCaseNamingStrategy()
+                NamingStrategy = new SnakeCaseNamingStrategy(),
             };
             JsonSerializerSettings settings = new JsonSerializerSettings
             {
                 ContractResolver = contractResolver,
-                Formatting = Formatting.Indented
+                Formatting = Formatting.Indented,
             };
             return JsonConvert.SerializeObject(obj, settings);
         }
 
-        public void ReplyMessage(string message)
-        {
-
-        }
+        public void ReplyMessage(string message) { }
 
         public void Dispose()
         {

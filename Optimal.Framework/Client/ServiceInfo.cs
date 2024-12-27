@@ -8,6 +8,7 @@ namespace Optimal.Framework.Client
         public int broker_port { get; set; }
         public string broker_virtual_host { get; set; }
         public string broker_queue_name { get; set; }
+        public string WorkflowDirectExchange { get; set; }
         public string broker_user_name { get; set; }
         public string broker_user_password { get; set; }
         public string broker_response_queue_name { get; set; }
